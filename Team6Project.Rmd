@@ -51,10 +51,10 @@ library(reshape2)
 library(tidyverse)  # data manipulation
 library(cluster)    # clustering algorithms
 library(factoextra) # clustering algorithms & visualization
+library(foreign)
 ```
 ### Data Loading
 ```{r}
-library(foreign)
 bank <- read.csv("bank.csv",sep = ";")
 # bank_full <- read.csv("bank-full.csv",sep = ";")
 # head(bank)
