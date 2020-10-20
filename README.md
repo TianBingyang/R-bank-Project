@@ -5,7 +5,7 @@ NUS BMK5102 R group project
 - Data Loading
   - "bank-full.csv": 45211 * 17
   - "bank.csv": 4521 * 17
-  - Use bank.csv to run your code for testing
+  - Use “bank.csv” to run your code for testing
 - Data Cleaning
   - Make the data more readable and clear.
 - Factor Analysis
@@ -20,3 +20,12 @@ NUS BMK5102 R group project
   - Split the data into train and test datasets.
   - Create a model using training data
   - Dashboard using Shiny?
+
+
+# Report
+The report must include, but not limited to, the following components:
+  - Case description
+  - Data source
+  - Case questions
+  - Modelling methodology
+  - Findings and conclusion
