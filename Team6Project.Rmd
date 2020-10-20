@@ -1,0 +1,97 @@
+---
+title: "Team6Project"
+author: "Team 6"
+date: "10/2/2020"
+output: html_document
+---
+# Case Description
+```{}
+To predict whether the customer will open an account in our bank or not based on personal information and bank’s sale strategy. To obtain customer information from bank data, first perform a cluster analysis of these customer characteristics and establish a simulation model. When a certain characteristic classification is input into the model, it outputs the probability of his purchase, which provides a perspective for the bank's sales strategy to different customers. 
+```
+# Data Source
+```{}
+1. Title: Bank Marketing
+2. Sources
+   Created by: Paulo Cortez (Univ. Minho) and Sérgio Moro (ISCTE-IUL) @ 2012
+3. Relevant Information:
+   The data is related with direct marketing campaigns of a Portuguese banking institution. 
+   The marketing campaigns were based on phone calls. Often, more than one contact to the same client was required, in order to access if the product (bank term deposit) would be (or not) subscribed. 
+   
+Citation:
+  [Moro et al., 2011] S. Moro, R. Laureano and P. Cortez. Using Data Mining for Bank Direct Marketing: An Application of the CRISP-DM Methodology. 
+  In P. Novais et al. (Eds.), Proceedings of the European Simulation and Modelling Conference - ESM'2011, pp. 117-121, Guimarães, Portugal, October, 2011. EUROSIS.
+
+  Available at: [pdf] http://hdl.handle.net/1822/14838
+                [bib] http://www3.dsi.uminho.pt/pcortez/bib/2011-esm-1.txt
+```
+```{r}
+df <- read.csv("bank-full.csv",sep = ";")
+head(df)
+```
+# Case Questions
+```{}
+What are the most important factors that may affect customers' decision to subscribe?
+...
+```
+# Modelling Methodology
+```{}
+
+```
+# Findings And Conclusion
+```{}
+
+```
+
+# Source Code
+### Required Libraries
+```{r ,message = FALSE,warning=FALSE}
+library(ggplot2)
+library(MASS)
+library(reshape2)
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering algorithms & visualization
+```
+### Data Loading
+```{r}
+library(foreign)
+bank <- read.csv("bank.csv",sep = ";")
+# bank_full <- read.csv("bank-full.csv",sep = ";")
+# head(bank)
+# summary(bank)
+```
+### Data Cleaning
+Make the table more readable and clear
+```{r}
+names(bank)[names(bank) == 'y'] <- 'ifPurchase'
+bank$ifPurchase <- ifelse(bank$ifPurchase == "yes", T, F)
+summary(bank$ifPurchase)
+```
+
+### Factor Analysis
+Find the composition where it affects the result the most(eg. martial, job+martial)
+Try to address what are the most important factors that may affect customers' purchase.
+```{r}
+fit1 <- lm(ifPurchase ~ ., data = bank)
+summary(fit1)
+```
+
+### Clustering
+```{r}
+
+```
+
+### Regression
+```{r}
+
+```
+
+### Predictive model
+Split data
+```{r}
+set.seed(123)
+sample <- sample(c(TRUE,FALSE),nrow(bank),prob = c(0.75,0.25),replace = TRUE)  #generate random true and false
+bank.train <- bank[sample, ] #those true data would be the training data
+bank.test <- bank[!sample, ] # those data label as false would be the test data
+```
+
