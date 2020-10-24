@@ -10,7 +10,7 @@ NUS BMK5102 R group project
   - Make the data more readable and clear.
 - Factor Analysis
   - Try to address what are the most important factors that may affect customers' purchase.
-- Clustering
+- *Clustering
   - Find which customer characteristics can be classified as similar categories. 
   - Visualization
 - Regression
@@ -19,7 +19,10 @@ NUS BMK5102 R group project
 - Predictive model
   - Split the data into train and test datasets.
   - Create a model using training data
-  - Dashboard using Shiny?
+    - Find out what is the most accurate model for our case.
+- Simulation
+  - In order to get 100% prop of subscription, what should salesperson do in terms of contact method,duration...
+  - *Dashboard using Shiny?
 
 
 # Report
@@ -27,5 +30,7 @@ The report must include, but not limited to, the following components:
   - Case description
   - Data source
   - Case questions
+    - What are the most important factors that may affect the probability of customers' subscription?
+    - In order to get 100% prop of subscription, what should salesperson do in terms of contact method,duration...
   - Modelling methodology
   - Findings and conclusion
