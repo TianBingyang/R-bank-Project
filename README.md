@@ -31,6 +31,7 @@ The report must include, but not limited to, the following components:
   - Data source
   - Case questions
     - What are the most important factors that may affect the probability of customers' subscription?
+    - For those who successfully subscript to the bank, what characteristics do they share in common?
     - In order to get 100% prop of subscription, what should salesperson do in terms of contact method,duration...
   - Modelling methodology
   - Findings and conclusion
