@@ -5,8 +5,7 @@ NUS BMK5102 R group project
 - Data Loading
   - "bank-full.csv": 45211 * 17
   - "bank.csv": 4521 * 17
-    - yes vs. no = 521:4000
-    - need to make the data more balanced
+    - yes vs. no = 521:4000 -> not balanced
   - Use “bank.csv” to run your code for testing
 - Data Cleaning
   - Make the data more readable and clear.
