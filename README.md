@@ -5,9 +5,12 @@ NUS BMK5102 R group project
 - Data Loading
   - "bank-full.csv": 45211 * 17
   - "bank.csv": 4521 * 17
+    - yes vs. no = 521:4000
+    - need to make the data more balanced
   - Use “bank.csv” to run your code for testing
 - Data Cleaning
   - Make the data more readable and clear.
+  - Make the data more balanced
 - Factor Analysis
   - Try to address what are the most important factors that may affect customers' purchase.
 - *Clustering
@@ -16,7 +19,7 @@ NUS BMK5102 R group project
 - Regression
   - Linear or logictic?
   - Visualization
-- Predictive model
+- Predictive model/classification
   - Split the data into train and test datasets.
   - Create a model using training data
     - Find out what is the most accurate model for our case.
