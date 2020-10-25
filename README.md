@@ -12,7 +12,7 @@ NUS BMK5102 R group project
   - Make the data more balanced
 - Factor Analysis
   - Try to address what are the most important factors that may affect customers' purchase.
-- *Clustering
+- *Clustering (try)
   - Find out which customer characteristics can be classified as similar categories. 
   - Visualization
 - Predictive model
@@ -23,9 +23,9 @@ NUS BMK5102 R group project
     - Split the data into train and test datasets.
     - Create a model using training data
     - Find out what is the most accurate model for our case.
-- **Simulation**
-  - In order to get 100% prop of subscription, what should salesperson do in terms of contact method,duration...
-  - *Dashboard using Shiny?
+- Dashboard
+  - Dashboard using Shiny
+  - Visualization
 
 
 # Report
