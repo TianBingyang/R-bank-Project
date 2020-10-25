@@ -26,6 +26,7 @@ NUS BMK5102 R group project
 - Dashboard [YZ]
   - Dashboard using Shiny
   - Basic Visualization
+  - predict
 
 
 # Report
