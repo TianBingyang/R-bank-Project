@@ -10,22 +10,22 @@ NUS BMK5102 R group project
 - Data Cleaning
   - Make the data more readable and clear.
   - Make the data more balanced
-- Factor Analysis
+- Factor Analysis [YW/ZY]
   - Try to address what are the most important factors that may affect customers' purchase.
-- *Clustering (try)
+- *Clustering (try) [BT/YS]
   - Find out which customer characteristics can be classified as similar categories. 
   - Visualization
 - Predictive model
-  - **Regression**
+  - **Regression** [YW/ZY]
     - Linear or logictic?
     - Visualization
-  - **Classification**
+  - **Classification** [BT/YS]
     - Split the data into train and test datasets.
     - Create a model using training data
     - Find out what is the most accurate model for our case.
-- Dashboard
+- Dashboard [YZ]
   - Dashboard using Shiny
-  - Visualization
+  - Basic Visualization
 
 
 # Report
