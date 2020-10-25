@@ -86,7 +86,7 @@ summary(fit1)
 
 ```
 
-### Predictive model
+### Classification
 Split data
 ```{r}
 set.seed(123)
