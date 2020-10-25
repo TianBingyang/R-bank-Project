@@ -12,7 +12,7 @@ NUS BMK5102 R group project
   - Make the data more balanced
 - Factor Analysis
   - Try to address what are the most important factors that may affect customers' purchase.
-- **Clustering**
+- *Clustering
   - Find out which customer characteristics can be classified as similar categories. 
   - Visualization
 - Predictive model
