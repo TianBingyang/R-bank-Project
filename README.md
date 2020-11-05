@@ -10,6 +10,9 @@ NUS BMK5102 R group project
 - Data Cleaning
   - Make the data more readable and clear.
   - Make the data more balanced
+  - “job”: mark as employed and unemployed, remove the rows with unknwon
+  - "month", "day": remove these two cols
+  - "age": divide this attribute to 2 types or 3 types depending on the result of clustering
 - Factor Analysis [YW/ZY]
   - Try to address what are the most important factors that may affect customers' purchase.
 - *Clustering (try) [BT/YS]
