@@ -1,0 +1,78 @@
+---
+title: "clusting"
+output: html_document
+---
+```{r}
+#' Load useful packages
+library(cluster)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(Rtsne)
+```
+
+```{r}
+# read data and select age to do the clustering only for age, and separate it from numerical variable to categorical variable
+data<-read.csv("bank.csv",sep=";")
+df2<-data
+df2$job<-factor(df2$job)
+df2$marital<-factor(df2$marital)
+df2$education<-factor(df2$education)
+df2$default<-factor(df2$default)
+df2$housing<-factor(df2$housing)
+df2$loan<-factor(df2$loan)
+df2$contact<-factor(df2$contact)
+df2$month<-NULL
+df2$poutcome<-factor(df2$poutcome)
+df2$y<-factor(df2$y)
+df2<-df2[,c("age","y")]
+```
+
+
+
+
+```{r}
+#' Compute Gower distance
+gower_dist <- daisy(df2, metric = "gower")
+gower_mat <- as.matrix(gower_dist)
+#' Print most similar clients
+df2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+df2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+# find out the number of group to cluster age to
+sil_width <- c(NA)
+for(i in 2:8){  
+  pam_fit <- pam(gower_dist, diss = TRUE, k = i)  
+  sil_width[i] <- pam_fit$silinfo$avg.width  
+}
+plot(1:8, sil_width,
+     xlab = "Number of clusters",
+     ylab = "Silhouette Width")
+lines(1:8, sil_width)
+```
+
+
+
+```{r}
+# clustering result of age
+k <- 5
+pam_fit <- pam(gower_dist, diss = TRUE, k)
+pam_results <- df2 %>%
+  mutate(cluster = pam_fit$clustering) %>%
+  group_by(cluster) %>%
+  do(the_summary = summary(.))
+pam_results$the_summary
+```
+
+```{r}
+# visualization
+tsne_obj <- Rtsne(gower_dist, is_distance = TRUE)
+tsne_data <- tsne_obj$Y %>%
+  data.frame() %>%
+  setNames(c("X", "Y")) %>%
+  mutate(cluster = factor(pam_fit$clustering))
+ggplot(aes(x = X, y = Y), data = tsne_data) +
+  geom_point(aes(color = cluster))
+```
+

@@ -1,0 +1,91 @@
+---
+title: "R project"
+author: "Sun Yifeng"
+date: "2020/11/3"
+output: html_document
+---
+
+```{r}
+data<-read.csv("bank.csv",sep=";")
+summary(data)
+```
+```{r}
+data$job<-factor(data$job)
+data$marital<-factor(data$marital)
+data$education<-factor(data$education)
+data$default<-factor(data$default)
+data$housing<-factor(data$housing)
+data$loan<-factor(data$loan)
+data$contact<-factor(data$contact)
+data$month<-factor(data$month)
+data$poutcome<-factor(data$poutcome)
+data$y<-factor(data$y)
+summary(data)
+
+```
+
+```{r}
+library(rpart)
+set.seed(6)
+sample <- sample(c(TRUE,FALSE),nrow(data),prob = c(0.8,0.2),replace = TRUE)
+data.train <- data[sample, ]
+data.test <- data[!sample, ]
+
+dtree <- rpart(y ~ ., data=data.train, method="class", parms=list(split="information"))
+summary(dtree)
+print(dtree)
+library(rpart.plot)
+prp(dtree, type=2, extra=104, fallen.leaves = TRUE, main="Decision Tree")
+
+library(rattle)
+fancyRpartPlot(dtree)
+```
+
+```{r}
+# choose the index cp to simplify decision tree
+dtree$cptable
+plotcp(dtree)
+```
+
+
+```{r}
+# simplify decision tree
+dtree.pruned <- prune(dtree, cp=0.025)
+prp(dtree.pruned, type=2, extra=104, fallen.leaves = TRUE, main="Decision Tree")
+dtree.pred <- predict(dtree.pruned, data.test, type="class")
+table <- table(data.test$y, dtree.pred,dnn=c("Actual","Predicted"))
+accuracy <- (table[1,1] + table[2,2])/sum(table)
+table
+accuracy
+```
+
+```{r}
+# conditional inference tree
+library(grid)
+library(mvtnorm)
+library(modeltools)
+library(stats4)
+library(strucchange)
+library(zoo)
+library(party)
+
+fit.ctree <- ctree(y ~ ., data=data.train)
+plot(fit.ctree, main="Conditional inference tree")
+ctree.pred <- predict(fit.ctree, data.test, type="response")
+accuracy <- table(data.test$y, ctree.pred,dnn=c("Actual","Predicted"))
+accuracy
+```
+
+```{r}
+# adjust model by adding the cost matrix, may not use that
+set.seed(6)
+dtree <- rpart(y ~ ., data=data.train, method="class", parms=list(split="information",loss=matrix(c(0,1,5,0), byrow=TRUE, nrow=2)))
+dtree$cptable
+plotcp(dtree)
+
+dtree.pruned <- prune(dtree, cp=0.11)
+prp(dtree.pruned, type=2, extra=104, fallen.leaves = TRUE, main="Decision Tree")
+dtree.pred <- predict(dtree.pruned, data.test, type="class")
+accuracy <- table(data.test$y, dtree.pred,dnn=c("Actual","Predicted"))
+accuracy
+```
