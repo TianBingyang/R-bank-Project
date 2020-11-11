@@ -78,6 +78,57 @@ summary(fit1)
 
 ### Clustering
 ```{r}
+####### Tian Bingyang #######
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering visualization
+library(dendextend) # for comparing two dendrograms
+bank_1 <- bank
+bank_1$default <- ifelse(bank_1$default=='yes',1,0)
+bank_1$housing <- ifelse(bank_1$housing=='yes',1,0)
+bank_1$loan <- ifelse(bank_1$loan=='yes',1,0)
+bank_1$outcome <- ifelse(bank_1$outcome=='yes',1,0)
+
+#' Compute Gower distance
+bank_2 <- bank[,1:8]
+gower_dist <- daisy(bank_2, metric = "gower")
+gower_mat <- as.matrix(gower_dist)
+#' Print most similar clients
+bank_2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+#' Print most dissimilar clients
+bank_2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+## identify best options for clustering ##
+sil_width <- c(NA)
+for(i in 2:8){  
+  pam_fit <- pam(gower_dist, diss = TRUE, k = i)  
+  sil_width[i] <- pam_fit$silinfo$avg.width  
+}
+plot(1:8, sil_width,
+     xlab = "Number of clusters",
+     ylab = "Silhouette Width")
+lines(1:8, sil_width)
+
+## Summary of each cluster ##
+
+k <- which.max(sil_width)
+pam_fit <- pam(gower_dist, diss = TRUE, k)
+pam_results <- bank_2 %>%
+   mutate(cluster = pam_fit$clustering) %>%
+   group_by(cluster) %>%
+   do(the_summary = summary(.))
+print(pam_results$the_summary)  ##print summary of each cluster
+
+
+## Visualization in a lower dimensional space ##
+tsne_obj <- Rtsne(gower_dist, is_distance = TRUE)
+tsne_data <- tsne_obj$Y %>%
+   data.frame() %>%
+   setNames(c("X", "Y")) %>%
+   mutate(cluster = factor(pam_fit$clustering))
+ggplot(aes(x = X, y = Y), data = tsne_data) +
+   geom_point(aes(color = cluster))
 
 ```
 
@@ -93,5 +144,59 @@ set.seed(123)
 sample <- sample(c(TRUE,FALSE),nrow(bank),prob = c(0.75,0.25),replace = TRUE)  #generate random true and false
 bank.train <- bank[sample, ] #those true data would be the training data
 bank.test <- bank[!sample, ] # those data label as false would be the test data
+
+####### Tian Bingyang - Naive Bayes ########
+library(tidyverse)
+library(ggplot2)
+library(caret)
+library(caretEnsemble)
+library(psych)
+library(Amelia)
+library(mice)
+library(GGally)
+library(rpart)
+library(randomForest)
+library(e1071)
+library(Rtsne)
+
+## cluster  mannually (based on yifeng's cluster)##
+
+bank$age_new <- ifelse(bank$age<=35,"19-35",ifelse(bank$age<=42,"36-42",ifelse(bank$age<=51,"43-51","52-87")))
+bank$job_new <- bank$job
+bank$job_new[bank$job!="services" & bank$job!="management" & bank$job!="blue-collar" & bank$job!="technician" & bank$job!="admin."]<- "unemployed"
+bank$job_new[bank$job=="services" | bank$job=="management" | bank$job=="blue-collar" | bank$job=="technician" | bank$job=="admin."]<- "employed"
+bank$balance_new <- ifelse(bank$balance<=700,"<=700",ifelse(bank$balance<=2819,"701-2819",ifelse(bank$balance<=8669,"2820-8669",">=8670")))
+
+outliers <- filter(bank,campaign > 10)
+
+bank <- bank[,c(-1,-2,-6)]
+bank <- bank[,c(15:17,1:14)] ##reorder the columns
+bank[,c(1:9,11,16,17)] <- lapply(bank[,c(1:9,11,16,17)], factor)  ## make variables factor
+
+
+indxTrain <- createDataPartition(y = bank$outcome,p = 0.75,list = FALSE)
+training <- bank[indxTrain,]
+testing <- bank[-indxTrain,] 
+prop.table(table(bank$outcome)) * 100
+
+
+#create objects x which holds the predictor variables and y which holds the response variables
+x = training[,c(1:16)]
+y = training$outcome
+
+model = train(x,y,'nb',trControl=trainControl(method='cv',number=10))
+
+#Model Evaluation
+#Predict testing set
+
+
+model
+Predict <- predict(model,newdata = testing )
+values <- confusionMatrix(Predict, testing$outcome )
+print(values)   ## output confusion matrix
+
+#Plot Variable performance(importance)
+X <- varImp(model)
+plot(X)
 ```
 
