@@ -1,0 +1,272 @@
+---
+title: "Team Project"
+author: "Tian Bingyang"
+date: "2020/10/25"
+output: html_document
+---
+First we manage to use Naive Bayes model to achieve our classification. I am not going to repeat the unnecessary details about Naive Byes model.
+
+The purpose is to calculate posterior probability like
+p(ifPurchase = Yes|age=...,job=...,...,poutcome=...) using Naive Bayes formula.
+
+Split dataset into training set and testing set by 70/30.
+Train model on training set and then apply it on testing set for prediction.
+```{r} 
+
+library(tidyverse)
+library(ggplot2)
+library(caret)
+library(caretEnsemble)
+library(psych)
+library(Amelia)
+library(mice)
+library(GGally)
+library(rpart)
+library(randomForest)
+library(e1071)
+library(Rtsne)
+
+bank <- read.csv("C:\\Users\\Prometheus\\Desktop\\NUS上课\\BMK5102 Big Data in Marketing\\Team Project\\data\\5102Team6-BankProject-main\\bank.csv", sep=";")
+
+names(bank)[17] <- 'outcome'
+
+summary(bank)
+
+## Show elements in each categorical column ##
+class_job <- unique(bank$job)
+class_edu <- unique(bank$education) 
+class_marital <- unique(bank$marital)
+class_default <- unique(bank$default)
+class_contact <- unique(bank$contact)
+class_month <- unique(bank$month)
+class_poutcome <- unique(bank$poutcome)
+
+## cluster  mannually (based on yifeng's cluster)##
+
+bank$age_new <- ifelse(bank$age<=35,"19-35",ifelse(bank$age<=42,"36-42",ifelse(bank$age<=51,"43-51","52-87")))
+bank$job_new <- bank$job
+bank$job_new[bank$job!="services" & bank$job!="management" & bank$job!="blue-collar" & bank$job!="technician" & bank$job!="admin."]<- "unemployed"
+bank$job_new[bank$job=="services" | bank$job=="management" | bank$job=="blue-collar" | bank$job=="technician" | bank$job=="admin."]<- "employed"
+bank$balance_new <- ifelse(bank$balance<=700,"<=700",ifelse(bank$balance<=2819,"701-2819",ifelse(bank$balance<=8669,"2820-8669",">=8670")))
+
+outliers <- filter(bank,campaign > 10)
+
+bank <- bank[,c(-1,-2,-6)]
+bank <- bank[,c(15:17,1:14)] ##reorder the columns
+bank[,c(1:9,11,16,17)] <- lapply(bank[,c(1:9,11,16,17)], factor)  ## make variables factor
+
+
+indxTrain <- createDataPartition(y = bank$outcome,p = 0.75,list = FALSE)
+training <- bank[indxTrain,]
+testing <- bank[-indxTrain,] 
+prop.table(table(bank$outcome)) * 100
+
+
+#create objects x which holds the predictor variables and y which holds the response variables
+x = training[,c(1:16)]
+y = training$outcome
+
+model = train(x,y,'nb',trControl=trainControl(method='cv',number=10))
+
+#Model Evaluation
+#Predict testing set
+
+
+model
+Predict <- predict(model,newdata = testing )
+values <- confusionMatrix(Predict, testing$outcome )
+print(values)   ## output confusion matrix
+
+#Plot Variable performance(importance)
+X <- varImp(model)
+plot(X)
+```
+In first version, we throw all variables into model and find that the Accuracy is pretty high but the Kappa is unsatisfactory which indicates that the accuracy mostly attribute to the TPR and TNR.
+
+Besides, the second chart depicts that "duration","previous","contact" occupy the top 3 importance.
+Which means whether customer deposit is mainly affected by the frequency and methods of marketing campaign.
+
+The clustering below aims to grouping the 4000 customers into different clusters based on Yifeng's clustering of age,job and balance and hope to find some common insights.
+
+
+```{r}
+## clustering ##
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering visualization
+library(dendextend) # for comparing two dendrograms
+bank_1 <- bank
+bank_1$default <- ifelse(bank_1$default=='yes',1,0)
+bank_1$housing <- ifelse(bank_1$housing=='yes',1,0)
+bank_1$loan <- ifelse(bank_1$loan=='yes',1,0)
+bank_1$outcome <- ifelse(bank_1$outcome=='yes',1,0)
+
+#' Compute Gower distance
+bank_2 <- bank[,1:8]
+gower_dist <- daisy(bank_2, metric = "gower")
+gower_mat <- as.matrix(gower_dist)
+#' Print most similar clients
+bank_2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+#' Print most dissimilar clients
+bank_2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+## identify best options for clustering ##
+sil_width <- c(NA)
+for(i in 2:8){  
+  pam_fit <- pam(gower_dist, diss = TRUE, k = i)  
+  sil_width[i] <- pam_fit$silinfo$avg.width  
+}
+plot(1:8, sil_width,
+     xlab = "Number of clusters",
+     ylab = "Silhouette Width")
+lines(1:8, sil_width)
+
+## Summary of each cluster ##
+
+k <- which.max(sil_width)
+pam_fit <- pam(gower_dist, diss = TRUE, k)
+pam_results <- bank_2 %>%
+  mutate(cluster = pam_fit$clustering) %>%
+  group_by(cluster) %>%
+  do(the_summary = summary(.))
+print(pam_results$the_summary)  ##print summary of each cluster
+
+
+## Visualization in a lower dimensional space ##
+tsne_obj <- Rtsne(gower_dist, is_distance = TRUE)
+tsne_data <- tsne_obj$Y %>%
+  data.frame() %>%
+  setNames(c("X", "Y")) %>%
+  mutate(cluster = factor(pam_fit$clustering))
+ggplot(aes(x = X, y = Y), data = tsne_data) +
+  geom_point(aes(color = cluster))
+
+
+```
+After clustering, we seperate original dataset into six groups
+However, we notice the Silhouette Width is not ideal.So we conclude that this clustering is somewhat not useful.
+
+Then,we do another clustering based on original dataset without grouping.
+```{r}
+
+## clustering ##   
+## original dataset free of trim or transformation ##
+
+bank <- read.csv("C:\\Users\\Prometheus\\Desktop\\NUS上课\\BMK5102 Big Data in Marketing\\Team Project\\data\\5102Team6-BankProject-main\\bank.csv", sep=";")
+
+bank[,c(2:4,9,11,16,17)] <-lapply(bank[,c(2:4,9,11,16,17)],factor)
+
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering visualization
+library(dendextend) # for comparing two dendrograms
+library(Rtsne)      # for visualization
+library(dplyr)
+
+bank_3 <- bank
+bank_3$default <- ifelse(bank_1$default=='yes',1,0)
+bank_3$housing <- ifelse(bank_1$housing=='yes',1,0)
+bank_3$loan <- ifelse(bank_1$loan=='yes',1,0)
+bank_3$outcome <- ifelse(bank_1$outcome=='yes',1,0)
+
+#' Compute Gower distance
+bank_3 <- bank_3[,c(1:8,17)]
+gower_dist <- daisy(bank_3, metric = "gower")
+gower_mat <- as.matrix(gower_dist)
+#' Print most similar clients
+bank_3[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+#' Print most dissimilar clients
+bank_3[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]), arr.ind = TRUE)[1, ], ]
+
+## identify best options for clustering ##
+sil_width <- c(NA)
+for(i in 2:8){  
+  pam_fit <- pam(gower_dist, diss = TRUE, k = i)  
+  sil_width[i] <- pam_fit$silinfo$avg.width  
+}
+plot(1:8, sil_width,
+     xlab = "Number of clusters",
+     ylab = "Silhouette Width")
+lines(1:8, sil_width)
+
+## Summary of each cluster ##
+
+k <- 4
+pam_fit <- pam(gower_dist, diss = TRUE, k)
+pam_results <- bank_3 %>%
+  mutate(cluster = pam_fit$clustering) %>%
+  group_by(cluster) %>%
+  do(the_summary = summary(.))
+print(pam_results$the_summary)  ##print summary of each cluster
+
+## Append an new column in terms of clustering result to original dataset ##
+
+bank <- mutate(bank,pam_fit[["clustering"]])
+names(bank)[18] <- "clustering_result"
+
+
+## Visualization in a lower dimensional space ##
+tsne_obj <- Rtsne(gower_dist, is_distance = TRUE)
+tsne_data <- tsne_obj$Y %>%
+  data.frame() %>%
+  setNames(c("X", "Y")) %>%
+  mutate(cluster = factor(pam_fit$clustering))
+ggplot(aes(x = X, y = Y), data = tsne_data) +
+  geom_point(aes(color = cluster))
+```
+
+After clustering, we separate original dataset into four groups by 8 descriptive features of customers like "age","job" to extract the implication of marketing campaign and follow the principle of maximizing Silhouette Width within a moderate range.
+
+Here are main property of four clusters:
+
+1. First cluster has highest age among all. Their occupation are mostly high salary. Among them married are majority. 
+
+2.Second cluster has relative high age. The educational background of them shows secondary. Their jobs are mainly blue-collar. Also they are mostly married. 
+
+3.Third cluster are relatively young. Their educational background are tertiaries.
+
+4.Fourth cluster are youngest, among whom are most technicians, with highest single rate. Their educational backgrounds are mostly secondary.
+
+Having clustered samples, we use logistic model with numeric variables to fit the data.
+
+
+We try to apply our clustering outcome to the logistic regression for the purpose to see whether there is any featured information among each group. For instance, if group1 have more likeliness to deposit in the bank.
+
+```{r}
+## logistic within different clusters ##
+
+### analyse by cluster ###
+names(bank)[which(names(bank) == 'y')] <- 'ifPurchase' 
+bank$ifPurchase <- ifelse(bank$ifPurchase=='yes',1,0)
+
+data_01 <- subset(bank,clustering_result == 1)
+data_01$ifPurchase <- as.numeric(data_01$ifPurchase) -1
+
+model1 <- glm(ifPurchase ~ age+  balance+ campaign + pdays +previous,family = gaussian, data = data_01)
+summary(model1)
+
+
+
+data_02 <- subset(bank,clustering_result == 2)
+data_02$ifPurchase <- as.numeric(data_02$ifPurchase) -1
+
+model2 <- glm(ifPurchase ~ age+  balance+ campaign + pdays +previous,family = gaussian, data = data_02)
+summary(model2)
+
+
+data_03 <- subset(bank,clustering_result == 3)
+data_03$ifPurchase <- as.numeric(data_03$ifPurchase) -1
+
+model3 <- glm(ifPurchase ~ age+  balance+ campaign + pdays +previous,family = gaussian, data = data_03)
+summary(model3)
+
+data_04 <- subset(bank,clustering_result == 4)
+data_04$ifPurchase <- as.numeric(data_04$ifPurchase) -1
+
+model4 <- glm(ifPurchase ~ age+  balance+ campaign + pdays +previous,family = gaussian, data = data_04)
+summary(model4)
+```
+
+However, the models' flaws are apparent since we did not take categorical variables into account.The reason is that we are not willing to make models long-winded by adding too many dummies into it. Even so, a bunch of coefficients are still insignificant.Eventually, we abandoned this approach and anchor the hope to Yifeng's clustering method.
